@@ -28,3 +28,22 @@ sum(is.na(mydata$date))
 sum(duplicated(mydata))
 mydata <- mydata[!duplicated(mydata), ]
 
+# Missing values
+# read.csv stores empty cells in text columns as "", not NA
+pct_missing <- sapply(mydata, function(x) round(100 * mean(is.na(x) | x == ""), 1))
+pct_missing
+# Eircode (more than half missing) and size_desc (most of them missing) are only filled in for some years,
+# so drop them. Address is free text, not needed.
+mydata$eircode   <- NULL
+mydata$size_desc <- NULL
+mydata$address   <- NULL
+
+# Non market sales, they are not accurate representation of actual prices
+table(mydata$not_full_market)
+tapply(mydata$price, mydata$not_full_market, median)
+mydata <- mydata[mydata$not_full_market == "No", ]
+mydata$not_full_market <- NULL
+View(mydata)
+
+# Outliers
+
