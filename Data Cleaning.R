@@ -32,6 +32,7 @@ mydata <- mydata[!duplicated(mydata), ]
 # read.csv stores empty cells in text columns as "", not NA
 pct_missing <- sapply(mydata, function(x) round(100 * mean(is.na(x) | x == ""), 1))
 pct_missing
+
 # Eircode (more than half missing) and size_desc (most of them missing) are only filled in for some years,
 # so drop them. Address is free text, not needed.
 mydata$eircode   <- NULL
@@ -46,4 +47,52 @@ mydata$not_full_market <- NULL
 View(mydata)
 
 # Outliers
+# IQR rule (1.5 x IQR) on price, same method as the course diamonds example
+before <- mydata
+ggplot(data = mydata, mapping = aes(x = county, y = price)) + geom_boxplot()
 
+Q1 <- quantile(mydata$price, 0.25, na.rm = TRUE)
+Q3 <- quantile(mydata$price, 0.75, na.rm = TRUE)
+IQR_value <- Q3 - Q1
+
+lower <- Q1 - 1.5 * IQR_value
+upper <- Q3 + 1.5 * IQR_value
+c(lower, upper)                                   # fences in euro
+sum(mydata$price < lower | mydata$price > upper)  # number of outliers
+
+mydata <- mydata[mydata$price >= lower &
+                   mydata$price <= upper &
+                   !is.na(mydata$price), ]
+rownames(mydata) <- NULL
+
+# Before / after comparison
+p1 <- ggplot(before, aes(x = price)) + geom_histogram(bins = 50) +
+  labs(title = "Price - before outlier removal")
+p2 <- ggplot(before, aes(x = log10(price))) + geom_histogram(bins = 50) +
+  labs(title = "log10(Price) - before outlier removal")
+p3 <- ggplot(mydata, aes(x = price)) + geom_histogram(bins = 50) +
+  labs(title = "Price - after outlier removal")
+p4 <- ggplot(mydata, aes(x = log10(price))) + geom_histogram(bins = 50) +
+  labs(title = "log10(Price) - after outlier removal")
+grid.arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
+
+#Create new useful columns
+mydata$year      <- as.integer(format(mydata$date, "%Y"))
+mydata$month     <- as.integer(format(mydata$date, "%m"))
+mydata$quarter   <- (mydata$month - 1) %/% 3 + 1
+mydata$log_price <- log10(mydata$price)
+
+# New dwelling = 1, second-hand = 0
+mydata$is_new <- as.integer(grepl("^New", mydata$desc))
+mydata$desc   <- NULL
+
+mydata$vat_excl  <- as.integer(mydata$vat_excl == "Yes")
+mydata$is_dublin <- as.integer(mydata$county == "Dublin")
+
+leinster <- c("Carlow", "Dublin", "Kildare", "Kilkenny", "Laois", "Longford",
+              "Louth", "Meath", "Offaly", "Westmeath", "Wexford", "Wicklow")
+munster  <- c("Clare", "Cork", "Kerry", "Limerick", "Tipperary", "Waterford")
+connacht <- c("Galway", "Leitrim", "Mayo", "Roscommon", "Sligo")
+mydata$province <- ifelse(mydata$county %in% leinster, "Leinster",
+                          ifelse(mydata$county %in% munster,  "Munster",
+                                 ifelse(mydata$county %in% connacht, "Connacht", "Ulster")))
