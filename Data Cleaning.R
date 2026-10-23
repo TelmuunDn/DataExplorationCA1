@@ -96,3 +96,20 @@ connacht <- c("Galway", "Leitrim", "Mayo", "Roscommon", "Sligo")
 mydata$province <- ifelse(mydata$county %in% leinster, "Leinster",
                           ifelse(mydata$county %in% munster,  "Munster",
                                  ifelse(mydata$county %in% connacht, "Connacht", "Ulster")))
+
+# Double checksas final
+dim(mydata)                  # expected 364,125 rows x 11 columns
+colSums(is.na(mydata))
+summary(mydata$price)
+str(mydata)
+View(mydata)
+
+# Quick visual check
+p5 <- ggplot(mydata, aes(x = province, y = price)) + geom_boxplot() +
+  scale_y_log10() + labs(title = "Price by province (log scale)")
+p6 <- ggplot(mydata, aes(x = factor(year))) + geom_bar() +
+  labs(title = "Sales per year", x = "year")
+grid.arrange(p5, p6, ncol = 2)
+
+# save cleaned dataset
+write.csv(mydata, file = "PPR_clean.csv", row.names = FALSE)
