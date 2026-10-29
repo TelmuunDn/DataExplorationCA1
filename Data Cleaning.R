@@ -113,3 +113,27 @@ grid.arrange(p5, p6, ncol = 2)
 
 # save cleaned dataset
 write.csv(mydata, file = "PPR_clean.csv", row.names = FALSE)
+
+#
+# Data cleaned, now onto the main requiremets of the CA
+# 
+# EDA, Variation and covariation
+# The cleaned data is already in mydata from the steps above
+# dplyr is needed for the pipe %>% (same as the course diamonds example)
+install.packages("dplyr")
+library(dplyr)
+
+# How is each variable spread out?
+# Question 1. What does the price distribution look like?
+ggplot(data = mydata, mapping = aes(x = price)) +
+  geom_histogram(binwidth = 20000, color = "black", fill = "steelblue") +
+  labs(title = "Distribution of sale prices", x = "Price (EUR)", y = "Sales")
+summary(mydata$price)
+
+# Question 2. How many sales are there in each county and each province?
+mydata %>% count(county) %>% arrange(desc(n))
+ggplot(data = mydata) + geom_bar(mapping = aes(x = province), fill = "steelblue")
+
+# Question 3. How many sales happen in each month? Does seasons have any effect in house sales?
+ggplot(data = mydata) + geom_bar(mapping = aes(x = factor(month)), fill = "steelblue") +
+  labs(title = "Sales per month", x = "Month", y = "Number of sales")
