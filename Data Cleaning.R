@@ -130,9 +130,10 @@ ggplot(data = mydata, mapping = aes(x = price)) +
   labs(title = "Distribution of sale prices", x = "Price (EUR)", y = "Sales")
 summary(mydata$price)
 
-# Question 2. How many sales are there in each county and each province?
+# Question 2. How many sales are there in each county?
 mydata %>% count(county) %>% arrange(desc(n))
-ggplot(data = mydata) + geom_bar(mapping = aes(x = province), fill = "steelblue")
+ggplot(data = mydata) + geom_bar(mapping = aes(x = county), fill = "steelblue") +
+  coord_flip() + labs(title = "Sales per county", x = "County", y = "Number of sales")
 
 # Question 3. How many sales happen in each month? Does seasons have any effect in house sales?
 ggplot(data = mydata) + geom_bar(mapping = aes(x = factor(month)), fill = "steelblue") +
